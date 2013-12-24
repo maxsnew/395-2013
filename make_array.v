@@ -1,5 +1,10 @@
+<<<<<<< Updated upstream
 Require Import braun monad log insert.
+=======
+Require Import braun monad fl_log insert util.
+>>>>>>> Stashed changes
 Require Import Div2 List.
+Require Import Arith.
 Set Implicit Arguments.
 
 Section ilist.
@@ -48,3 +53,54 @@ Section make_array_naive.
   Obligation 1. omega. Qed.
 
 End make_array_naive.
+
+
+(* Some subset type notation *)
+Notation "[ e ]" := (exist _ e _).
+Require Import Arith.Even.
+Section make_array_naive'.
+  Variable A : Set.
+
+  Definition bnode_cond m1 m2 n : Prop :=
+    ((even n /\ m1 = m2) \/ (odd n /\ m1 = S m2)) /\ m1 + m2 = n.
+
+  Lemma div2_double_even : forall n, even n -> div2 n + div2 n = n.
+    intros.
+    SearchAbout even.
+  Admitted.
+  
+  Lemma div2_double_odd : forall n, odd n -> S (div2 n) + div2 n = n.
+    intros.
+    SearchAbout even.
+  Admitted.
+
+  Definition sep m : { mn : nat * nat | bnode_cond (fst mn) (snd mn) m }.
+    refine (
+        if even_odd_dec m
+        then [ (div2 m, div2 m) ]
+        else [ (S (div2 m), div2 m) ]
+      ); unfold bnode_cond; simpl; split.
+    left. split; [assumption | reflexivity].
+    admit.
+    right. split; [assumption | reflexivity].
+    admit.
+  Qed.
+  
+  Program Fixpoint unravel n (l : ilist A n): forall m1 m2, bnode_cond m1 m2 n -> ilist A m1 * ilist A m2 :=
+    match l with
+      | Nil => fun _ _ _ => (Nil _ , Nil _)
+      | Cons n x xs => fun _ _ _ =>
+        let '(odds, evens) := unravel xs (proj2_sig (sep n)) in
+        (Cons x evens, odds)
+    end.
+  Obligation 1. inversion H1. omega.
+  Obligation 2. inversion H1. omega.
+  Obligation 3. remember (sep n0) as H'. inversion H'. inversion H2.
+  inversion H3; clear H3.
+  
+
+  
+  inversion H1.
+  
+  
+End make_array_naive'.
